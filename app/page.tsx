@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-// import { MapPin, Plus, Search, Sparkles } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { districts } from '@/lib/place'
 
@@ -20,7 +19,6 @@ type Preview = {
   address: string
   district: string
   kakao_place_url?: string
-  needsNameCheck?: boolean
 }
 
 export default function Home() {
@@ -45,31 +43,37 @@ export default function Home() {
     loadRestaurants()
   }, [])
 
-  const filtered = useMemo(() => {
+  const filteredRestaurants = useMemo(() => {
     if (filter === '전체') return restaurants
     return restaurants.filter((r) => r.district === filter)
   }, [restaurants, filter])
 
   async function resolvePlace() {
-    setError('')
-    setPreview(null)
     if (!mapUrl.trim()) {
-      setError('지도 공유 링크를 붙여넣어 주세요.')
+      setError('지도 공유 링크를 입력해 주세요.')
       return
     }
 
     setLoading(true)
+    setError('')
+    setPreview(null)
+
     try {
       const res = await fetch('/api/resolve-place', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mapUrl: mapUrl.trim() }),
+        body: JSON.stringify({ mapUrl }),
       })
+
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error || '장소 확인에 실패했어요.')
+
+      if (!res.ok) {
+        throw new Error(data.error || '장소 정보를 찾지 못했어요.')
+      }
+
       setPreview(data)
     } catch (e: any) {
-      setError(e.message)
+      setError(e.message || '장소 확인에 실패했어요.')
     } finally {
       setLoading(false)
     }
@@ -77,8 +81,10 @@ export default function Home() {
 
   async function savePlace() {
     if (!preview) return
+
     setSaving(true)
     setError('')
+
     try {
       const { error } = await supabase.from('restaurants').insert({
         map_url: preview.map_url,
@@ -86,24 +92,27 @@ export default function Home() {
         address: preview.address,
         district: preview.district,
       })
+
       if (error) throw error
+
       setMapUrl('')
       setPreview(null)
       await loadRestaurants()
     } catch (e: any) {
-      setError(e.message || '저장에 실패했어요. Supabase RLS 정책을 확인해 주세요.')
+      setError(e.message || '저장에 실패했어요.')
     } finally {
       setSaving(false)
     }
+  }
 
   return (
     <main>
-  <section className="header container">
-    <div className="badge">울산 맛집 공유 저장소</div>
-
-    <h1>울산 맛집 아카이브</h1>
+      <section className="header container">
+        <div className="badge">울산 맛집 공유 저장소</div>
         <h1>울산 맛집 아카이브</h1>
-        <p className="subtitle">네이버지도 또는 카카오맵에서 공유 링크를 복사해 붙여넣으면 가게 이름과 주소, 구·군을 정리해서 모두가 볼 수 있어요.</p>
+        <p className="subtitle">
+          네이버지도 또는 카카오맵에서 공유 링크를 복사해 붙여넣으면 가게 이름과 주소, 구·군을 정리해서 모두가 볼 수 있어요.
+        </p>
       </section>
 
       <section className="container panel">
@@ -114,22 +123,26 @@ export default function Home() {
             onChange={(e) => setMapUrl(e.target.value)}
             placeholder="네이버지도/카카오맵 공유 링크를 붙여넣어 주세요"
           />
-          <button className="btn" onClick={resolvePlace} disabled={loading}>{loading ? '확인 중...' : '장소 확인'}</button>
+          <button className="btn" onClick={resolvePlace} disabled={loading}>
+            {loading ? '확인 중...' : '장소 확인'}
+          </button>
         </div>
-        <p className="hint">카카오맵 링크가 가장 정확해요. 네이버지도 링크는 일부 링크에서 장소명이 정확히 안 잡힐 수 있어요.</p>
+
+        <p className="hint">
+          카카오맵 링크가 가장 정확해요. 네이버지도 링크는 일부 링크에서 장소명이 정확히 안 잡힐 수 있어요.
+        </p>
+
         {error && <div className="error">{error}</div>}
 
         {preview && (
           <div className="preview">
             <div className="preview-title">{preview.name}</div>
-           <div className="addr">
-  {preview.address}
-</div>
-            <button ...>
-  등록하기
-</button>
+            <div className="addr">{preview.address}</div>
+            <div className="meta">
               <span className="tag">{preview.district}</span>
-              <button className="btn" onClick={savePlace} disabled={saving}>{saving ? '저장 중...' : '등록하기'}</button>
+              <button className="btn" onClick={savePlace} disabled={saving}>
+                {saving ? '저장 중...' : '등록하기'}
+              </button>
             </div>
           </div>
         )}
@@ -138,28 +151,34 @@ export default function Home() {
       <section className="container">
         <div className="filters">
           {districts.map((d) => (
-            <button key={d} className={`filter ${filter === d ? 'active' : ''}`} onClick={() => setFilter(d)}>
+            <button
+              key={d}
+              className={filter === d ? 'filter active' : 'filter'}
+              onClick={() => setFilter(d)}
+            >
               {d}
             </button>
           ))}
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="empty"><Search size={32} /><p>아직 등록된 맛집이 없어요.</p></div>
-        ) : (
-          <div className="grid">
-            {filtered.map((r) => (
-              <article className="card" key={r.id}>
+        <div className="list">
+          {filteredRestaurants.map((r) => (
+            <article className="card" key={r.id}>
+              <div className="card-top">
                 <h3>{r.name}</h3>
-                <div className="addr">{r.address}</div>
-                <div className="meta">
-                  <span className="tag">{r.district}</span>
-                  <span>{new Date(r.created_at).toLocaleDateString('ko-KR')}</span>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
+                <span>{r.district}</span>
+              </div>
+              <p>{r.address}</p>
+              <a href={r.map_url} target="_blank" rel="noreferrer">
+                지도 링크 열기
+              </a>
+            </article>
+          ))}
+
+          {filteredRestaurants.length === 0 && (
+            <div className="empty">아직 등록된 맛집이 없어요.</div>
+          )}
+        </div>
       </section>
     </main>
   )
