@@ -130,7 +130,7 @@ export default function Home() {
   등록하기
 </button>
               <span className="tag">{preview.district}</span>
-              <button className="btn" onClick={savePlace} disabled={saving}>{saving ? '저장 중...' : <><Plus size={16} style={{ verticalAlign: 'middle' }} /> 등록하기</>}</button>
+              <button className="btn" onClick={savePlace} disabled={saving}>{saving ? '저장 중...' : '등록하기'}</button>
             </div>
           </div>
         )}
