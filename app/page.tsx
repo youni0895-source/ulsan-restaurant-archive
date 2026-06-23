@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { MapPin, Plus, Search, Sparkles } from 'lucide-react'
+// import { MapPin, Plus, Search, Sparkles } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { districts } from '@/lib/place'
 
