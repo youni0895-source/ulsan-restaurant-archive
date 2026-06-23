@@ -95,7 +95,6 @@ export default function Home() {
     } finally {
       setSaving(false)
     }
-  }
 
   return (
     <main>
