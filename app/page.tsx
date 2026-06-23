@@ -123,8 +123,12 @@ export default function Home() {
         {preview && (
           <div className="preview">
             <div className="preview-title">{preview.name}</div>
-            <div className="addr"><MapPin size={15} style={{ verticalAlign: 'middle' }} /> {preview.address}</div>
-            <div className="meta">
+           <div className="addr">
+  {preview.address}
+</div>
+            <button ...>
+  등록하기
+</button>
               <span className="tag">{preview.district}</span>
               <button className="btn" onClick={savePlace} disabled={saving}>{saving ? '저장 중...' : <><Plus size={16} style={{ verticalAlign: 'middle' }} /> 등록하기</>}</button>
             </div>
