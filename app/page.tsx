@@ -100,7 +100,9 @@ export default function Home() {
   return (
     <main>
       <section className="header container">
-        <div className="badge"><Sparkles size={16} /> 울산 맛집 공유 저장소</div>
+        <div className="badge">
+  울산 맛집 공유 저장소
+</div>
         <h1>울산 맛집 아카이브</h1>
         <p className="subtitle">네이버지도 또는 카카오맵에서 공유 링크를 복사해 붙여넣으면 가게 이름과 주소, 구·군을 정리해서 모두가 볼 수 있어요.</p>
       </section>
